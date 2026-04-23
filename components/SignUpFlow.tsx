@@ -98,10 +98,11 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
       if (err.name === 'AbortError') {
         console.error('Registration error: Request timed out');
         setError("The server did not respond in time. Please check your network and try again.");
-      } else {
-        console.error('Registration error:', err);
-        setError(err.message || "Failed to send verification email. Please try again.");
+        return;
       }
+
+      console.error('Registration error:', err);
+      setError(err.message || "Failed to send verification email. Please try again.");
     } finally {
       setLoading(false);
     }
