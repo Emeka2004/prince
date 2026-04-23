@@ -27,8 +27,19 @@ app.post("/api/send-verification", async (req, res) => {
   console.log("Received verification request for:", email);
 
   if (!process.env.MOUAU_KEY || !process.env.GMAIL_USER) {
-    console.error("Gmail configuration (MOUAU_KEY or GMAIL_USER) is not defined");
-    return res.status(500).json({ error: "Email configuration missing. Please check your environment variables." });
+    const missing = [];
+    if (!process.env.GMAIL_USER) missing.push("GMAIL_USER");
+    if (!process.env.MOUAU_KEY) missing.push("MOUAU_KEY");
+    console.error(`Gmail configuration error: Missing [${missing.join(", ")}] in environment variables.`);
+    return res.status(500).json({ error: `Server configuration incomplete. Missing: ${missing.join(", ")}` });
+  }
+
+  // Double check that GMAIL_USER looks like an email and MOUAU_KEY is not just a short string
+  if (!process.env.GMAIL_USER.includes('@')) {
+    return res.status(500).json({ error: "GMAIL_USER must be a valid email address." });
+  }
+  if (process.env.MOUAU_KEY.length < 10) {
+    return res.status(500).json({ error: "MOUAU_KEY seems too short. Ensure you are using a 16-character Gmail App Password." });
   }
 
   try {
