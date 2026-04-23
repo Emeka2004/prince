@@ -66,9 +66,17 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Server error response:', errorData);
-        throw new Error(`Failed to send verification email: ${errorData.error || 'Unknown error'}`);
+        const errorText = await response.text();
+        let errorMessage = "Unknown error";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If it's not JSON, it might be HTML (like a 404 page)
+          errorMessage = errorText;
+        }
+        console.error('Server error response:', errorMessage);
+        throw new Error(`Failed to send verification email: ${errorMessage}`);
       }
 
       setStep('verify');
