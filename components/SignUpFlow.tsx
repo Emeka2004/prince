@@ -95,9 +95,13 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
       console.log("Request successful, switching step to verify");
       setStep('verify');
     } catch (err: any) {
-      console.error('Registration error:', err);
-      // If the error object has a message from our throw above, use it.
-      setError(err.message || "Failed to send verification email. Please try again.");
+      if (err.name === 'AbortError') {
+        console.error('Registration error: Request timed out');
+        setError("The server did not respond in time. Please check your network and try again.");
+      } else {
+        console.error('Registration error:', err);
+        setError(err.message || "Failed to send verification email. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
