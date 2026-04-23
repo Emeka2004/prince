@@ -57,30 +57,35 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
 
     setLoading(true);
 
+    console.log("Registering user:", formData);
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedCode(code);
+    console.log("Generated code:", code);
 
     try {
+      console.log("Sending request to /api/send-verification");
       const response = await fetch('/api/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, username: formData.username, code }),
       });
 
+      console.log("Received response from server:", response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error("Server returned error response:", errorText);
         let errorMessage = "Unknown error";
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
-          // If it's not JSON, it might be HTML (like a 404 page)
           errorMessage = errorText;
         }
-        console.error('Server error response:', errorMessage);
         throw new Error(`Failed to send verification email: ${errorMessage}`);
       }
 
+      console.log("Request successful, switching step to verify");
       setStep('verify');
     } catch (err: any) {
       console.error('Registration error:', err);
