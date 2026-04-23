@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   AlertCircle
 } from 'lucide-react';
-import emailjs from '@emailjs/browser';
 
 interface SignUpFlowProps {
   onSuccess: (userData: { username: string; email: string }) => void;
@@ -60,34 +59,23 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
     setGeneratedCode(code);
 
     try {
-      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+      const response = await fetch('/api/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, username: formData.username, code }),
+      });
 
-      // Check for configuration using ONLY if
-      if (!serviceId || !templateId || !publicKey) {
-        console.log("%c--- DEV MODE: VERIFICATION CODE ---", "color: #6366f1; font-weight: bold;");
-        console.log(`Code for ${formData.email}: ${code}`);
-        console.log("-----------------------------------");
-        setStep('verify');
-        setLoading(false);
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Server error response:', errorData);
+        throw new Error(`Failed to send verification email: ${errorData.error || 'Unknown error'}`);
       }
-
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          to_email: formData.email,
-          to_name: formData.username,
-          verification_code: code,
-        },
-        publicKey
-      );
 
       setStep('verify');
     } catch (err: any) {
-      setError("Failed to send verification email. Please try again.");
+      console.error('Registration error:', err);
+      // If the error object has a message from our throw above, use it.
+      setError(err.message || "Failed to send verification email. Please try again.");
     } finally {
       setLoading(false);
     }
