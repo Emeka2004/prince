@@ -91,7 +91,7 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
     }
   };
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
