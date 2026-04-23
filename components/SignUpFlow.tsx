@@ -11,6 +11,8 @@ import {
   ShieldCheck,
   AlertCircle
 } from 'lucide-react';
+import { db } from '../services/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface SignUpFlowProps {
   onSuccess: (userData: { username: string; email: string }) => void;
@@ -100,13 +102,28 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
     }
 
     if (verificationCode === generatedCode) {
-      setSuccess("Account verified successfully!");
-      setTimeout(() => {
-        onSuccess({
+      setLoading(true);
+      try {
+        await addDoc(collection(db, 'users'), {
           username: formData.username,
-          email: formData.email
+          email: formData.email,
+          createdAt: serverTimestamp(),
+          verified: true
         });
-      }, 1500);
+        
+        setSuccess("Account verified and saved successfully!");
+        setTimeout(() => {
+          onSuccess({
+            username: formData.username,
+            email: formData.email
+          });
+          setLoading(false);
+        }, 1500);
+      } catch (err: any) {
+        console.error("Error saving user to Firestore:", err);
+        setError("Account verified, but failed to save your profile. Please try again.");
+        setLoading(false);
+      }
     }
   };
 

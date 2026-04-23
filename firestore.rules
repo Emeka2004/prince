@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['username', 'email', 'createdAt', 'verified'])
+        && data.keys().size() == 4
+        && data.username is string && data.username.size() >= 2 && data.username.size() <= 50
+        && data.email is string && data.email.size() <= 100 && data.email.matches('^[a-zA-Z0-9._%+-]+@gmail\\.com$')
+        && data.verified == true
+        && data.createdAt == request.time;
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // For registration: anyone can create if the data is valid
+      // Since it's a new user registration without Firebase Auth in place yet, we allow public creation but strict validation
+      allow create: if isValidUser(request.resource.data);
+      
+      // For general app safety, only allow reading if you know the ID or are an admin
+      // Note: User can see their own data if we had auth, but for now we keep it strict.
+      allow get: if false; 
+      allow list: if false; 
+    }
+  }
+}
