@@ -64,11 +64,18 @@ const SignUpFlow: React.FC<SignUpFlowProps> = ({ onSuccess, onSwitchToLogin }) =
 
     try {
       console.log("Sending request to /api/send-verification");
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch('/api/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, username: formData.username, code }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       console.log("Received response from server:", response.status);
 
