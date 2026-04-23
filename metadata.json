@@ -1,0 +1,5 @@
+{
+  "name": "Prince - Smart Material Recommender",
+  "description": "An AI-powered academic resource recommendation system that categorizes course materials and provides intelligent suggestions based on topics and learning objectives.",
+  "requestFramePermissions": []
+}
